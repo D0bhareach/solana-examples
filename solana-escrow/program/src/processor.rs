@@ -29,25 +29,35 @@ impl Processor {
         }
     }
 
+    // require Alice wallet account
+    // System Program, Token Program, Escrow Program
     fn process_init_escrow(
         accounts: &[AccountInfo],
         amount: u64,
-        program_id: &Pubkey,
+        program_id: &Pubkey, // program_id, program that the PDA is derived for
     ) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
+        // the person who initialize this exchange
         let initializer = next_account_info(account_info_iter)?;
 
         if !initializer.is_signer {
             return Err(ProgramError::MissingRequiredSignature);
         }
 
+        // Alice's offer account. What data must it have? Looks like it's for
+        // tokens of kind X.
         let temp_token_account = next_account_info(account_info_iter)?;
 
+        // Token to recieve? I think the one to get other assets?? Or is it Bob's?
+        // Looks like it's for different kind of token. For token Y.
         let token_to_receive_account = next_account_info(account_info_iter)?;
         if *token_to_receive_account.owner != spl_token::id() {
             return Err(ProgramError::IncorrectProgramId);
         }
         
+        // Looks like escrow account used to hold information required to
+        // process escrow transaction What-temp_token_account, change to - token_to_receive_account,
+        // amount of tokens Y.
         let escrow_account = next_account_info(account_info_iter)?;
         let rent = &Rent::from_account_info(next_account_info(account_info_iter)?)?;
 
@@ -70,14 +80,15 @@ impl Processor {
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[b"escrow"], program_id);
 
+        // change authority of temporary assets to token program.
         let token_program = next_account_info(account_info_iter)?;
         let owner_change_ix = spl_token::instruction::set_authority(
-            token_program.key,
-            temp_token_account.key,
-            Some(&pda),
+            token_program.key, // owner of Alice's tmp assets
+            temp_token_account.key, // account which authority must be changed.
+            Some(&pda), // change authority to this
             spl_token::instruction::AuthorityType::AccountOwner,
-            initializer.key,
-            &[initializer.key],
+            initializer.key, // owner of what
+            &[initializer.key], // signer. What is signer?
         )?;
 
         msg!("Calling the token program to transfer token account ownership...");
