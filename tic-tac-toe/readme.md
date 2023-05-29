@@ -49,7 +49,13 @@ Continue. I don't remember why in Anchor.toml `[programs.localnet]` is set to `a
 I was getting error `Error: Metadata property not found in IDL of program: tic_tak_toe`, after reading
 [this answer from stackoverflow](https://stackoverflow.com/questions/70658572/error-loading-workspace-idl-for-solana-anchor-testing) I re-deploy program and run again and it it sorted
 the problem.   
+### Run Tests
 After refactoring and writing tests. Tests have moved from localnet to devnet.
-If you are sure about your deploy use `anchor test --skip-build --skip-deploy` will save time and SOL.
+* `anchor clean` clean anchor project
+* `anchor buiild` build project
+* `anchor test` start test
+
+If you are sure about your deploy, for example you change something in test *.ts file
+use `anchor test --skip-build --skip-deploy` will save time and SOL.
 
 `
